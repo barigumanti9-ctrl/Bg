@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Notifikasi Penting</title>
+<style>
+  :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;}
+  body{margin:0;background:#0f172a;color:#e6eef8;display:flex;align-items:center;justify-content:center;min-height:100vh}
+  .card{width:92%;max-width:420px;background:linear-gradient(180deg,#07102a,#0a1a3a);border-radius:16px;padding:22px;box-shadow:0 10px 30px rgba(2,6,23,.6);text-align:center}
+  h1{margin:0 0 8px;font-size:20px}
+  p{margin:0 0 18px;color:#bcd3ff}
+  .bar{height:12px;background:#0b2548;border-radius:10px;overflow:hidden;margin:14px 0}
+  .progress{height:100%;width:0%;background:linear-gradient(90deg,#39b0ff,#7cf2ff);transition:width 700ms ease}
+  .btn{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.04);cursor:pointer}
+  .reveal{display:none;margin-top:14px;font-weight:700;font-size:18px}
+  .small{font-size:13px;color:#95b3ff;margin-top:8px}
+  /* confetti canvas full */
+  canvas{position:fixed;left:0;top:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="card" role="main" aria-live="polite">
+  <h1>Update Sistem Penting</h1>
+  <p id="msg">Sedang memeriksa perangkat Anda... mohon tunggu</p>
+
+  <div class="bar" aria-hidden="true"><div class="progress" id="prog"></div></div>
+
+  <div id="controls">
+    <div class="small">Jika tidak merespon otomatis, tekan tombol di bawah.</div>
+    <div class="btn" id="force">Mulai Manual</div>
+  </div>
+
+  <div class="reveal" id="reveal">Wkwkwk… enak ya tinggal pakai 😆
+Padahal yang bikin sampai kopi tiga gelas belum kelar.
+Nag lemak buat dewek, ilmu lebih mahal bos!”😜<div style="margin-top:10px"><button class="btn" id="share">Bagikan ke Teman</button></div></div>
+</div>
+
+<canvas id="cf"></canvas>
+
+<script>
+  // Progressive loader simulation
+  const prog = document.getElementById('prog');
+  const msg = document.getElementById('msg');
+  const reveal = document.getElementById('reveal');
+  const force = document.getElementById('force');
+  const share = document.getElementById('share');
+
+  let percent = 0;
+  function step() {
+    percent += Math.floor(Math.random()*15)+8; // acak agar terlihat natural
+    if (percent >= 100) { percent = 100; prog.style.width = '100%'; finish(); }
+    else prog.style.width = percent+'%';
+  }
+  const t = setInterval(step, 800);
+
+  function finish(){
+    clearInterval(t);
+    msg.textContent = 'Selesai. Memeriksa hasil...';
+    setTimeout(()=> {
+      // show reveal
+      document.getElementById('controls').style.display = 'none';
+      reveal.style.display = 'block';
+      startConfetti();
+    }, 900);
+  }
+
+  force.addEventListener('click', () => {
+    prog.style.width = '100%';
+    finish();
+  });
+
+  share.addEventListener('click', () => {
+    const url = location.href;
+    if (navigator.share) {
+      navigator.share({title:'Prank Lucu', text:'Cek ini!', url});
+    } else {
+      prompt('Salin link ini untuk dibagikan ke teman:', url);
+    }
+  });
+
+  // Simple confetti (lightweight)
+  function startConfetti(){
+    const canvas = document.getElementById('cf');
+    canvas.width = innerWidth; canvas.height = innerHeight;
+    const ctx = canvas.getContext('2d');
+    const conf = [];
+    for(let i=0;i<120;i++){
+      conf.push({x:Math.random()*canvas.width, y:Math.random()*-canvas.height, r:Math.random()*6+4, s:Math.random()*3+2, c: ['#ff6b6b','#ffd166','#4ade80','#60a5fa'][Math.floor(Math.random()*4)]});
+    }
+    let raf;
+    function anim(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      conf.forEach(p=>{
+        p.y += p.s;
+        p.x += Math.sin(p.y*0.01)*2;
+        ctx.fillStyle = p.c;
+        ctx.fillRect(p.x, p.y, p.r, p.r*0.6);
+        if(p.y>canvas.height+20){ p.y = -10; p.x = Math.random()*canvas.width; }
+      });
+      raf = requestAnimationFrame(anim);
+    }
+    anim();
+    // stop after 8s
+    setTimeout(()=>{ cancelAnimationFrame(raf); canvas.remove(); }, 8000);
+  }
+
+  // Accessibility: allow keyboard to trigger manual
+  force.tabIndex = 0;
+  force.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); force.click(); }});
+</script>
+</body>
+</html>
